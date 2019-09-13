@@ -1,0 +1,140 @@
+version: "3.2"
+
+services:
+  api:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-api
+    env_file: docker-compose.env
+    environment:
+      SERVICES: api
+      PORT: 3000
+    depends_on:
+      - nats
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=3000"
+      - "traefik.frontend.entryPoints=http"
+      - "traefik.frontend.rule=PathPrefix:/"
+    networks:
+      - internal
+
+  greeter:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-greeter
+    env_file: docker-compose.env
+    environment:
+      SERVICES: greeter
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - nats
+    networks:
+      - internal
+
+  orders1:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-orders1
+    env_file: docker-compose.env
+    environment:
+      SERVICES: orders
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - nats
+      - mongo
+    networks:
+      - internal
+
+  orders2:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-orders2
+    env_file: docker-compose.env
+    environment:
+      SERVICES: orders
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - nats
+      - mongo
+    networks:
+      - internal
+  
+  orders3:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-orders3
+    env_file: docker-compose.env
+    environment:
+      SERVICES: orders
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - nats
+      - mongo
+    networks:
+      - internal
+
+  customers:
+    build:
+      context: .
+    image: ecommerce
+    container_name: ecommerce-customers
+    env_file: docker-compose.env
+    environment:
+      SERVICES: customers
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - nats
+      - mongo
+    networks:
+      - internal
+
+  nats:
+    image: nats
+    labels:
+      - "traefik.enable=false"
+    networks:
+      - internal
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - internal
+
+  traefik1:
+    image: traefik
+    container_name: traefik1
+    command:
+      - "--api"
+      - "--docker"
+      - "--docker.watch"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.port=8080"
+    ports:
+      - 3000:80
+      - 3001:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+    networks:
+      - internal
+      - default
+  
+networks:
+  internal:
